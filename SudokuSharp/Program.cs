@@ -1,218 +1,142 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace SudokuSharp
 {
-
-    public class Cell
-    {
-        public Cell(int x, int y, int value)
-        {
-            X = x;
-            Y = y;
-
-            Value = OrgValue = value;
-            IsStatic = value > 0;
-        }
-
-        public bool IsStatic { get; }
-
-        public int X { get; }
-        public int Y { get; }
-
-        public int OrgValue { get; }
-        public int Value { get; set; }
-
-        public int Cost { get; set; }
-
-        public bool HasValue { 
-            get
-            {
-                return IsStatic || Value > 0;
-            } 
-        }
-
-        public override string ToString()
-        {
-            return $"{{X={X},Y={Y},V={Value},C={Cost}}}";
-        }
-    }
-
-    public class Graph
-    {
-        public List<List<Cell>> CellGraph { get; }
-
-        public Graph(int[,] array2D)
-        {
-            // intialize a graph variable to hold all cells
-            List<List<Cell>> graph = new List<List<Cell>>();
-
-            for (int x = 0; x < 3; x++)
-            {
-                List<Cell> column = new List<Cell>();
-                graph.Add(column);
-
-                for (int y = 0; y < 3; y++)
-                {
-                    column.Add(new Cell(x, y, array2D[y, x]));
-                }
-            }
-
-            CellGraph = graph;
-            UpdateCost();
-        }
-
-        public void UpdateCost()
-        {
-            var graph = CellGraph;
-
-            foreach (var row in graph)
-            {
-                foreach (var cell in row)
-                {
-                    if (cell.IsStatic)
-                        continue;
-
-                    int horCount = 0;
-                    int verCount = 0;
-
-                    for (int x = 0; x < 3; x++)
-                    {
-                        if (x != cell.X)
-                        {
-                            var c = graph[x][cell.Y];
-                            if (c.HasValue)
-                                horCount++;
-                        }
-                    }
-
-                    for (int y = 0; y < 3; y++)
-                    {
-                        if (y != cell.Y)
-                        {
-                            var c = graph[cell.X][y];
-                            if (c.HasValue)
-                                verCount++;
-                        }
-                    }
-
-                    cell.Cost = 9 - (horCount + verCount);
-                }
-
-            }
-        }
-
-        public Cell FindLowestCost()
-        {
-            Cell lowest = new Cell(0, 0, 1);
-            lowest.Cost = 9;
-
-            foreach (var row in CellGraph)
-            {
-                foreach (var cell in row)
-                {
-                    if (!cell.HasValue && cell.Cost < lowest.Cost)
-                        lowest = cell;
-                }
-            }
-
-            return lowest;
-        }
-
-        public int[] AvaibleNumbers()
-        {
-            List<int> values = new List<int>();
-
-            for (int i = 1; i < 10; i++)
-                values.Add(i);
-
-            foreach (var row in CellGraph)
-            {
-                foreach (var c in row)
-                {
-                    if (c.HasValue)
-                        values.Remove(c.Value);
-                }
-            }
-
-            return values.ToArray();
-        }
-
-        public bool HasEmptyCell()
-        {
-            foreach (var row in CellGraph)
-            {
-                foreach (var cell in row)
-                {
-                    if (!cell.HasValue)
-                        return true;
-                }
-            }
-            return false;
-        }
-
-        public bool IsSolved()
-        {
-            return !HasEmptyCell() && AvaibleNumbers().Length == 0;
-        }
-    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            int[,] array2D = new int[,] { 
-                { 9, 4, 0 }, 
-                { 0, 0, 3 }, 
-                { 1, 0, 0 }, 
+            int[,] sudoku1 = new int[,] { 
+                { 9, 4, 0, 0, 0, 0, 5, 0, 8 }, 
+                { 0, 0, 3, 0, 8, 1, 4, 2, 0 }, 
+                { 1, 0, 0, 0, 2, 0, 0, 0, 0 },
+                { 6, 9, 0, 0, 0, 5, 0, 8, 0 },
+                { 0, 5, 4, 9, 0, 0, 0, 3, 7 },
+                { 2, 3, 0, 8, 4, 0, 9, 5, 0 },
+                { 0, 1, 8, 7, 6, 2, 0, 0, 0 },
+                { 0, 7, 0, 0, 0, 4, 0, 0, 2 },
+                { 5, 0, 0, 0, 9, 0, 0, 4, 0 }
             };
 
-            int size = array2D.Length;
+            int[,] sudoku2 = new int[,] {
+                { 9, 0, 8, 4, 0, 0, 0, 7, 1 },
+                { 0, 0, 0, 0, 1, 2, 8, 6, 3 },
+                { 0, 0, 0, 8, 0, 0, 0, 4, 0 },
+                { 8, 0, 1, 7, 9, 3, 6, 0, 0 },
+                { 2, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 7, 0, 1, 2, 4, 3, 0, 9 },
+                { 0, 0, 5, 0, 8, 7, 4, 0, 0 },
+                { 0, 8, 3, 0, 6, 0, 0, 0, 7 },
+                { 6, 2, 0, 5, 0, 9, 0, 0, 0 }
+            };
 
-            Graph sudokuGraph = new Graph(array2D);
-            List<List<Cell>> graph = sudokuGraph.CellGraph;
+            int[,] sudoku3 = new int[,] {
+                { 9, 0, 0, 8, 4, 5, 0, 0, 0 },
+                { 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+                { 1, 4, 0, 2, 7, 0, 6, 0, 0 },
+                { 5, 1, 0, 0, 0, 0, 0, 0, 7 },
+                { 6, 0, 9, 0, 0, 1, 3, 0, 4 },
+                { 0, 2, 0, 0, 0, 0, 5, 0, 0 },
+                { 0, 6, 0, 0, 0, 9, 8, 4, 0 },
+                { 7, 0, 0, 3, 8, 0, 0, 0, 1 },
+                { 0, 0, 1, 6, 5, 2, 0, 0, 0 }
+            };
 
-            for (int y = 0; y < 3; y++)
+            Console.WriteLine("===========SUDOKU 1===========");
+            Sudoku sudo1 = new Sudoku(sudoku1);
+            SolveSudoku(sudo1);
+
+            Console.WriteLine("\n\n===========SUDOKU 2===========");
+            Sudoku sudo2 = new Sudoku(sudoku2);
+            SolveSudoku(sudo2);
+
+            Console.WriteLine("\n\n===========SUDOKU 3===========");
+            Sudoku sudo3 = new Sudoku(sudoku3);
+            SolveSudoku(sudo3);
+        }
+
+        static void SolveSudoku(Sudoku sudoku)
+        {
+            Console.WriteLine("===========BEFORE===========");
+            PrintSudoku(sudoku);
+            Console.WriteLine("===========COST===========");
+            PrintSudokuCost(sudoku);
+
+            while (sudoku.HasEmptyCell())
             {
-                for (int x = 0; x < 3; x++)
+                Cell cell = sudoku.FindLowestCost();
+                int[] numbers = sudoku.AvailableNumbersAt(cell);
+                if (numbers.Length > 0)
                 {
-                    Console.Write($"{graph[x][y]}, ");
+                    //Console.WriteLine($"----------Update {updateCount++}-----------");
+                    //Console.WriteLine($"Cell {cell} update its value to: {numbers[0]}");
+                    cell.Value = numbers[0];
+                    sudoku.UpdateCost();
                 }
-                Console.WriteLine("");
+                else
+                    break;
+
             }
 
-            printGraph(graph);
-            Console.WriteLine("===============");
+            Console.WriteLine("===========AFTER=========");
+            PrintSudoku(sudoku);
+            Console.WriteLine("=========================");
 
-            while (sudokuGraph.HasEmptyCell())
-            {
-                Cell cell = sudokuGraph.FindLowestCost();
-                int[] values = sudokuGraph.AvaibleNumbers();
-                cell.Value = values[0];
-            }
-
-            if (sudokuGraph.IsSolved())
-            {
-                printGraph(graph);
-                Console.WriteLine("===============");
-
+            if (sudoku.IsSolved())
                 Console.WriteLine("It's solve!");
-            }
             else
             {
                 Console.WriteLine("Something went wrong");
+                foreach (var graph in sudoku.Graphs)
+                {
+                    if (!graph.IsSolved())
+                    {
+                        Console.WriteLine($"==={graph.X},{graph.Y}====");
+                        PrintGraph(graph);
+                        Console.WriteLine("==============");
+                    }
+                }
             }
         }
 
-        static void printGraph(List<List<Cell>> graph)
+        public static void PrintGraph(Graph graph)
         {
             for (int y = 0; y < 3; y++)
             {
                 for (int x = 0; x < 3; x++)
                 {
-                    Console.Write($"{graph[x][y].Value}, ");
+                    Console.Write($"{graph.Cells[x, y].Value}, ");
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        static void PrintSudoku(Sudoku sudoku)
+        {
+            for (int y = 0; y < 9; y++)
+            {
+                for (int x = 0; x < 9; x++)
+                {
+                    Cell c = sudoku.CellAt(x, y);
+                    Console.Write($"{c.Value}, ");
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        static void PrintSudokuCost(Sudoku sudoku)
+        {
+            for (int y = 0; y < 9; y++)
+            {
+                for (int x = 0; x < 9; x++)
+                {
+                    
+                    Cell c = sudoku.CellAt(x, y);
+                    if (c.Cost < 0)
+                        Console.Write("., ");
+                    else
+                        Console.Write($"{c.Cost}, ");
                 }
                 Console.WriteLine("");
             }
