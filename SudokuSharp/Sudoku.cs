@@ -65,6 +65,7 @@ namespace SudokuSharp
                     c.XinSudoku = X * 3 + x;
                     c.YinSudoku = Y * 3 + y;
                     cells[x, y] = c;
+                    //Console.WriteLine($"cell ({c.XinSudoku}, {c.YinSudoku}) value {c.Value}");
                 }
             }
         }
@@ -106,6 +107,8 @@ namespace SudokuSharp
         public int[,] OrgGraph { get; }
 
         public Graph[,] Graphs { get; }
+
+        public int StepTotal { get; set; }
 
         public Sudoku(int[,] array2D)
         {
