@@ -58,17 +58,29 @@ namespace SudokuSharp
                 { 0, 0, 0,  0, 4, 0,  0, 0, 0 },
             };
 
+            //Console.WriteLine("===========SUDOKU EASY 1===========");
+            //SolveSudoku(sudoku_easy1, false);
+
+            //Console.WriteLine("\n\n===========SUDOKU EASY 2===========");
+            //SolveSudoku(sudoku_easy2, false);
+
+            //Console.WriteLine("\n\n===========SUDOKU MEDIUM===========");
+            //SolveSudoku(sudoku_medium, false);
+
+            //Console.WriteLine("\n\n===========SUDOKU HARD===========");
+            //SolveSudoku(sudoku_hard, false);
+
             Console.WriteLine("===========SUDOKU EASY 1===========");
-            SolveSudoku(sudoku_easy1, false);
+            Solve_Sudoku_Backtrack(sudoku_easy1);
 
             Console.WriteLine("\n\n===========SUDOKU EASY 2===========");
-            SolveSudoku(sudoku_easy2, false);
+            Solve_Sudoku_Backtrack(sudoku_easy2);
 
             Console.WriteLine("\n\n===========SUDOKU MEDIUM===========");
-            SolveSudoku(sudoku_medium, false);
+            Solve_Sudoku_Backtrack(sudoku_medium);
 
             Console.WriteLine("\n\n===========SUDOKU HARD===========");
-            SolveSudoku(sudoku_hard, false);
+            Solve_Sudoku_Backtrack(sudoku_hard);
         }
 
         static void SolveSudoku(int[,] array, bool print=true)
@@ -109,6 +121,56 @@ namespace SudokuSharp
             Console.WriteLine("=========================");
 
             IsSudokuSolved(sudoku);
+        }
+
+        static void Solve_Sudoku_Backtrack(int[,] array)
+        {
+            Sudoku sudoku = new Sudoku(array);
+
+            Console.WriteLine("===========BEFORE===========");
+            PrintSudokuCost(sudoku);
+
+            Solve_Backtrack_Recursively(sudoku, false);
+
+            Console.WriteLine("===========AFTER=========");
+            PrintSudokuCost(sudoku);
+            Console.WriteLine("=========================");
+
+            IsSudokuSolved(sudoku);
+        }
+
+        // Backtracking with Recursively function found at
+        // https://www.geeksforgeeks.org/sudoku-backtracking-7/
+        // https://see.stanford.edu/materials/icspacs106b/H19-RecBacktrackExamples.pdf
+        static bool Solve_Backtrack_Recursively(Sudoku sudoku, bool printDebug=true)
+        {
+            Cell cell = sudoku.FindLowestCost();
+            if (cell == null)
+                return true;
+
+            sudoku.StepTotal++;
+            if (printDebug)
+                PrintSudokuCost(sudoku);
+
+            foreach (int num in sudoku.AvailableNumbersAt(cell))
+            {
+                cell.Value = num;
+                sudoku.UpdateCost();
+
+                if (printDebug)
+                    Console.WriteLine($"Updated cell ({cell.XinSudoku}, {cell.YinSudoku}) " +
+                        $" with value: {cell.Value}");
+
+                if (Solve_Backtrack_Recursively(sudoku, printDebug))
+                    return true;
+                else
+                {
+                    cell.Value = 0;
+                    sudoku.UpdateCost();
+                }
+            }
+
+            return false;
         }
 
         static string ArrayToString(int[] array)
